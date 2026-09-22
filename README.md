@@ -64,3 +64,58 @@ docker compose run --rm test bash -c "uv pip install --system -e '.[dev]' && pyt
 2.  **`POST /token` (Autenticación):** 
     *   Acepta `grant_type=password` para validar usuarios de Active Directory y extraer sus grupos.
     *   Acepta `grant_type=client_credentials` para la comunicación máquina a máquina (Service-to-Service).
+
+---
+
+## ¿Cómo consumen otros microservicios este Identity Broker?
+
+Tus otros microservicios ya no necesitan conectarse a Active Directory. Solo requieren la librería `PyJWT[crypto]` para descargar la clave pública de este broker y verificar matemáticamente la validez del token.
+
+**Ejemplo de implementación en otro microservicio FastAPI:**
+
+```python
+# Instalar dependencias en tu otro microservicio:
+# uv pip install fastapi PyJWT[crypto]
+
+from fastapi import Depends, FastAPI, HTTPException, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import jwt
+
+app = FastAPI()
+security = HTTPBearer()
+
+# URL donde el Identity Broker expone su clave pública (Ajusta la IP/Puerto)
+JWKS_URL = "http://localhost:8000/.well-known/jwks.json"
+jwks_client = jwt.PyJWKClient(JWKS_URL)
+
+def verificar_token(credentials: HTTPAuthorizationCredentials = Security(security)):
+    token = credentials.credentials
+    try:
+        # Descarga y cachea la clave pública RSA correspondiente
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
+        
+        # Valida firma, expiración y emisor
+        payload = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=["RS256"],
+            issuer="ad-jwt-bridge"
+        )
+        return payload
+        
+    except jwt.PyJWKClientError:
+        raise HTTPException(status_code=500, detail="Error de conexión con el Identity Broker")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="El token ha expirado")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Token inválido o firma incorrecta")
+
+# Protegiendo una ruta con el token validado
+@app.get("/recurso-protegido")
+def ruta_privada(user_data: dict = Depends(verificar_token)):
+    return {
+        "mensaje": f"Autenticado exitosamente como {user_data.get('sub')}",
+        "tipo_usuario": user_data.get('type'),
+        "roles": user_data.get('roles', [])
+    }
+```
