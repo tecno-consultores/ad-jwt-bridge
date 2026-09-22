@@ -17,3 +17,6 @@ coverage.xml
 .venv/
 venv/
 env/
+
+# Certificados y Claves RSA
+certs/
