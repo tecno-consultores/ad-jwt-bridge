@@ -1,0 +1,24 @@
+services:
+  api:
+    image: sinfallas/base-python-uv:3.13
+    container_name: ad-jwt-bridge-api
+    volumes:
+      - ./:/app
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env # <-- Esta línea inyecta tu configuración real de Active Directory
+    command: bash -c "uv pip install --system -e '.[dev]' && uvicorn src.api.routes:app --host 0.0.0.0 --port 8000 --reload"
+
+  test:
+    image: sinfallas/base-python-uv:3.13
+    container_name: ad-jwt-bridge-test
+    volumes:
+      - ./:/app
+    working_dir: /app
+    environment:
+      - UV_PYTHON_DOWNLOADS=true
+    env_file:
+      - .env # Inyecta las credenciales reales para las pruebas de integración
+    # El comando se sobreescribe desde la terminal al hacer 'docker compose run --rm test ...'

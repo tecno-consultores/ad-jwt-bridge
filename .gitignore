@@ -1,0 +1,19 @@
+# Entorno y Secretos
+.env
+
+# Cachés de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Cachés de Pruebas y Calidad
+.pytest_cache/
+.ruff_cache/
+.tox/
+.coverage
+coverage.xml
+
+# Entornos Virtuales
+.venv/
+venv/
+env/
