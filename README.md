@@ -16,7 +16,7 @@ La API lee sus parámetros de conexión y seguridad desde variables de entorno. 
 
 ```ini
 # Configuración de Active Directory
-AD_URL="ldaps://192.168.1.1:636"
+AD_URL="ldap://192.168.1.1:389"
 AD_DOMAIN="TU_DOMINIO_CORTO"
 AD_SEARCH_BASE="dc=tu-dominio,dc=local"
 AD_TIMEOUT=5
