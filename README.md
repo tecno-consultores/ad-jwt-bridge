@@ -8,6 +8,7 @@ La API ha sido diseñada con estándares de nivel empresarial:
 *   **Alta Fiabilidad:** Probada exhaustivamente con una cobertura de código superior al 95%.
 *   **Tipado Estricto:** Código 100% validado estáticamente en origen mediante `mypy`.
 *   **Compatibilidad Total:** Matriz de pruebas automatizada para múltiples versiones de Python.
+*   **Interoperabilidad:** Políticas CORS configuradas para integraciones seguras con Frontends (React, Vue, etc.).
 
 ## Configuración
 
@@ -20,6 +21,10 @@ AD_DOMAIN="TU_DOMINIO_CORTO"
 AD_SEARCH_BASE="dc=tu-dominio,dc=local"
 AD_TIMEOUT=5
 
+# Credenciales de Servicio a Servicio (Service-to-Service)
+SERVICE_CLIENT_ID="microservicio-cliente"
+SERVICE_CLIENT_SECRET="secreto-robusto-123"
+
 # Credenciales exclusivas para las pruebas de integración End-to-End
 TEST_AD_USER="tu_usuario_de_prueba"
 TEST_AD_PASSWORD="tu_password_seguro"
@@ -27,9 +32,18 @@ TEST_AD_PASSWORD="tu_password_seguro"
 
 > **Importante:** Asegúrate de que el archivo `.env` esté incluido en tu `.gitignore` para evitar exponer tus credenciales.
 
-## Ejecución
+## Preparación y Ejecución
 
-### Opción A: Levantar el Servicio en Vivo (Desarrollo)
+### 1. Generación de Claves RSA (Obligatorio)
+Para evitar que los tokens emitidos se invaliden al reiniciar el contenedor, el broker requiere una clave privada física persistente. Antes de iniciar el servicio por primera vez, ejecuta:
+
+```bash
+chmod +x setup_certs.sh
+./setup_certs.sh
+```
+Esto creará el archivo `certs/private_key.pem`.
+
+### 2. Levantar el Servicio en Vivo (Desarrollo)
 La API se despliega mediante Docker, instalando dependencias al vuelo gracias a `uv`.
 
 ```bash
@@ -37,7 +51,7 @@ docker compose up api
 ```
 Una vez iniciado, visita `http://localhost:8000/docs` para acceder a la interfaz interactiva (Swagger UI) y probar la emisión de tokens en caliente.
 
-### Opción B: Ejecución de la Suite de Pruebas
+### 3. Ejecución de la Suite de Pruebas
 Si prefieres no instalar dependencias en tu sistema anfitrión, puedes ejecutar las herramientas de validación a través del contenedor de pruebas aislado:
 
 ```bash

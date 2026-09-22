@@ -7,8 +7,9 @@ En `ad-jwt-bridge` mantenemos un estándar estricto de calidad de código. Este 
 Nuestra suite de validación se divide en dos enfoques principales:
 
 ### A. Pruebas Unitarias (Unit Tests)
-*   **Propósito:** Verificar el comportamiento lógico interno del Identity Broker (generación JWT, inyección de dependencias) de forma completamente aislada, determinista y ultrarrápida.
-*   **Paquetes y tecnologías:** `pytest` actúa como el motor de ejecución principal. Utilizamos `unittest.mock` con `@patch` para interceptar la librería `ldap3`, simulando respuestas falsas de directorios y forzando caídas catastróficas por *Timeout*.
+*   **Propósito:** Verificar el comportamiento lógico interno del Identity Broker (generación JWT, inyección de dependencias, políticas CORS) de forma completamente aislada, determinista y ultrarrápida.
+*   **Paquetes y tecnologías:** `pytest` actúa como el motor de ejecución principal. Utilizamos `unittest.mock` con `@patch` para interceptar la librería `ldap3` e inyectar variables de entorno efímeras.
+*   **Manejo Criptográfico (conftest.py):** Para evitar fallos en entornos limpios de CI/CD que no posean la clave RSA física (`private_key.pem`), el archivo `conftest.py` intercepta el inicio de la prueba y genera una clave "dummy" temporal de 2048 bits de forma automática.
 *   **Diferencia clave:** En esta prueba nunca hay conexión a la red ni al controlador de dominio.
 
 ### B. Pruebas de Integración (Integration Tests)

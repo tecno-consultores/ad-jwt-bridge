@@ -6,6 +6,11 @@ Gracias por interesarte en el desarrollo de `ad-jwt-bridge`. Este documento expl
 
 Este repositorio incluye un entorno basado en Docker Compose diseñado para aislar completamente el ciclo de desarrollo. De esta manera, garantizamos la reproducibilidad de las pruebas sin depender de la configuración local o de las dependencias instaladas en el sistema anfitrión.
 
+Antes de ejecutar cualquier entorno por primera vez, asegúrate de generar las claves criptográficas base:
+```bash
+./setup_certs.sh
+```
+
 ## Calidad de Código y Pruebas (Testing)
 
 Para garantizar un estándar de nivel empresarial, el proyecto implementa múltiples capas de validación automatizada:
@@ -32,11 +37,12 @@ docker compose run --rm test bash -c "uv pip install --system -e '.[dev]' && ruf
 
 ## Solución de Problemas (Troubleshooting)
 
-### Archivos de caché rastreados accidentalmente por Git
-Si Git incluyó carpetas de caché temporal (como `.ruff_cache/` o `.pytest_cache/`) antes de que el archivo `.gitignore` fuera configurado, estas seguirán apareciendo en los *commits* futuros. Para obligar a Git a olvidarlas sin eliminarlas de tu disco duro, ejecuta:
+### Archivos de caché o claves rastreados accidentalmente por Git
+Si Git incluyó carpetas de caché temporal (como `.ruff_cache/`) o claves privadas (`certs/`) antes de que el archivo `.gitignore` fuera configurado, estas seguirán apareciendo en los *commits* futuros. Para obligar a Git a olvidarlas sin eliminarlas de tu disco duro, ejecuta:
 
 ```bash
 git rm -r --cached .ruff_cache/
 git rm -r --cached .pytest_cache/
 git rm -r --cached .tox/
+git rm -r --cached certs/
 ```

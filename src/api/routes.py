@@ -3,11 +3,21 @@ from datetime import timedelta
 from typing import Any, Optional
 
 from fastapi import Depends, FastAPI, Form, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.security import create_access_token, get_jwks
 from src.ldap_service.client import ADClient
 
 app = FastAPI(title="AD JWT Bridge", version="0.1.0")
+
+# Permite que otros microservicios se comuniquen con esta API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # En producción estricta, cambia "*" por las IPs/dominios de tus microservicios
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def get_ad_client() -> ADClient:
     return ADClient(
@@ -46,9 +56,11 @@ async def login(
     
     # 1. Autenticación Service-to-Service (Client Credentials)
     if form_data.grant_type == "client_credentials":
-        valid_services = {"microservicio-cliente": "secreto-robusto-123"}
+        # Se leen las credenciales desde el entorno para no exponerlas en el código
+        valid_client_id = os.getenv("SERVICE_CLIENT_ID", "microservicio-cliente")
+        valid_client_secret = os.getenv("SERVICE_CLIENT_SECRET", "secreto-robusto-123")
         
-        if form_data.client_id and valid_services.get(form_data.client_id) == form_data.client_secret:
+        if form_data.client_id == valid_client_id and form_data.client_secret == valid_client_secret:
             token = create_access_token(
                 data={"sub": form_data.client_id, "type": "service", "roles": ["internal"]},
                 expires_delta=timedelta(hours=2)

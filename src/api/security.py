@@ -1,15 +1,29 @@
 import base64
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import jwt
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
 
-# Generación de clave RSA en memoria. 
-# (En producción multinstancia, se podría inyectar desde un gestor de secretos).
-private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
+# Ruta de la clave montada en el contenedor (por defecto en /app/certs)
+PRIVATE_KEY_PATH = os.getenv("PRIVATE_KEY_PATH", "/app/certs/private_key.pem")
+
+if not os.path.exists(PRIVATE_KEY_PATH):
+    raise FileNotFoundError(
+        f"CRÍTICO: No se encontró la clave privada en {PRIVATE_KEY_PATH}. "
+        "Ejecuta './setup_certs.sh' antes de iniciar el Identity Broker."
+    )
+
+# Carga estática de la clave RSA desde el archivo físico
+with open(PRIVATE_KEY_PATH, "rb") as key_file:
+    private_key = serialization.load_pem_private_key(
+        key_file.read(),
+        password=None,
+        backend=default_backend()
+    )
+
 public_key = private_key.public_key()
 
 PEM_PRIVATE_KEY = private_key.private_bytes(
