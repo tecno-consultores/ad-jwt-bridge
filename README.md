@@ -119,3 +119,5 @@ def ruta_privada(user_data: dict = Depends(verificar_token)):
         "roles": user_data.get('roles', [])
     }
 ```
+
+Copyright (C) 2026 Jesus Palencia <sinfallas@gmail.com> (Creado en Tecno Consultores)
